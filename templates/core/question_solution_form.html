@@ -1,0 +1,25 @@
+{% extends "core/base.html" %}
+
+{% block title %}{{ question.code }} çözümü · Soru Havuzu{% endblock %}
+
+{% block content %}
+<div class="narrow-shell">
+    <div class="page-heading">
+        <div><p class="eyebrow">{{ question.code }}</p><h1>Çözümü düzenle</h1><p class="muted">Düz metin veya LaTeX kullanabilirsiniz.</p></div>
+    </div>
+    <form method="post" class="question-form">
+        {% csrf_token %}
+        <section class="form-section">
+            <div class="field-group {% if form.solution.errors %}has-error{% endif %}">
+                <label for="{{ form.solution.id_for_label }}">Çözüm</label>
+                {{ form.solution }}
+                {{ form.solution.errors }}
+            </div>
+        </section>
+        <div class="form-actions">
+            <a href="{% url 'question-detail' question.code %}" class="button button-secondary">Vazgeç</a>
+            <button type="submit" class="button button-primary">Çözümü kaydet</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

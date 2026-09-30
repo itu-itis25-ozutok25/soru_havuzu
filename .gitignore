@@ -1,4 +1,7 @@
 .env
+.env.*
+!.env.example
+!.env.production.example
 .venv/
 __pycache__/
 *.py[cod]
@@ -9,7 +12,7 @@ __pycache__/
 htmlcov/
 media/
 staticfiles/
+backups/
 .idea/
 .vscode/
 .DS_Store
-

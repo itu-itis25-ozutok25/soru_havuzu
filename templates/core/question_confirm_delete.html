@@ -1,0 +1,16 @@
+{% extends "core/base.html" %}
+
+{% block title %}{{ question.code }} sil · Soru Havuzu{% endblock %}
+
+{% block content %}
+<section class="confirm-card">
+    <div class="danger-icon">!</div>
+    <p class="eyebrow">Kalıcı silme</p>
+    <h1>{{ question.code }} kalıcı olarak silinsin mi?</h1>
+    <p>Bu işlem soru kaydını ve yüklenen görseli geri alınamayacak biçimde siler. Soru kodu başka bir soruya verilmez.</p>
+    <div class="form-actions">
+        <a href="{% url 'question-detail' question.code %}" class="button button-secondary">Vazgeç</a>
+        <form method="post">{% csrf_token %}<button type="submit" class="button button-danger">Kalıcı olarak sil</button></form>
+    </div>
+</section>
+{% endblock %}

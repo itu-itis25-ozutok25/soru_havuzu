@@ -1,0 +1,80 @@
+{% extends "core/base.html" %}
+
+{% block title %}{{ page_title }} · Soru Havuzu{% endblock %}
+
+{% block content %}
+<div class="narrow-shell">
+    <div class="page-heading">
+        <div>
+            <p class="eyebrow">Soru kaydı</p>
+            <h1>{{ page_title }}</h1>
+            <p class="muted">Zorunlu alanları doldurun. Soru tipi, zorluk ve çözüm daha sonra eklenebilir.</p>
+        </div>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="question-form">
+        {% csrf_token %}
+        {% if form.non_field_errors %}<div class="form-errors">{{ form.non_field_errors }}</div>{% endif %}
+
+        <section class="form-section">
+            <h2>Görsel ve sınıflandırma</h2>
+            {% for field in form %}
+                {% if field.name == "original_image" or field.name == "allow_duplicate_image" or field.name == "primary_topic" or field.name == "secondary_topics" or field.name == "learning_outcomes" %}
+                    <div class="field-group {% if field.errors %}has-error{% endif %}">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span>*</span>{% endif %}</label>
+                        {{ field }}
+                        {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+                        {{ field.errors }}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </section>
+
+        <section class="form-section">
+            <h2>Soru ve şıklar</h2>
+            {% for field in form %}
+                {% if field.name == "question_text" or field.name == "choice_a" or field.name == "choice_b" or field.name == "choice_c" or field.name == "choice_d" or field.name == "correct_answer" %}
+                    <div class="field-group {% if field.errors %}has-error{% endif %}">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span>*</span>{% endif %}</label>
+                        {{ field }}
+                        {{ field.errors }}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </section>
+
+        <section class="form-section">
+            <h2>Kaynak bilgileri</h2>
+            <div class="form-grid">
+                {% for field in form %}
+                    {% if field.name == "source_pdf_name" or field.name == "source_page_number" or field.name == "source_question_number" %}
+                        <div class="field-group {% if field.errors %}has-error{% endif %}">
+                            <label for="{{ field.id_for_label }}">{{ field.label }}<span>*</span></label>
+                            {{ field }}
+                            {{ field.errors }}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </section>
+
+        <section class="form-section optional-section">
+            <h2>İsteğe bağlı bilgiler <small>Sonradan tamamlanabilir</small></h2>
+            {% for field in form %}
+                {% if field.name == "question_type" or field.name == "difficulty" or field.name == "solution" %}
+                    <div class="field-group {% if field.errors %}has-error{% endif %}">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        {{ field.errors }}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </section>
+
+        <div class="form-actions">
+            <a href="{% if question %}{% url 'question-detail' question.code %}{% else %}{% url 'question-list' %}{% endif %}" class="button button-secondary">Vazgeç</a>
+            <button type="submit" class="button button-primary">Soruyu kaydet</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

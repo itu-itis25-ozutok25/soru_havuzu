@@ -1,0 +1,28 @@
+{% extends "core/base.html" %}
+
+{% block title %}Giriş · Soru Havuzu{% endblock %}
+
+{% block content %}
+<section class="auth-card">
+    <p class="eyebrow">Yönetim alanı</p>
+    <h1>Tekrar hoş geldiniz</h1>
+    <p class="muted">Soru havuzuna erişmek için yönetici hesabınızla giriş yapın.</p>
+
+    <form method="post" class="stacked-form">
+        {% csrf_token %}
+        {% if form.non_field_errors %}<div class="form-errors">{{ form.non_field_errors }}</div>{% endif %}
+        <div class="field-group">
+            <label for="{{ form.username.id_for_label }}">Kullanıcı adı</label>
+            {{ form.username }}
+            {{ form.username.errors }}
+        </div>
+        <div class="field-group">
+            <label for="{{ form.password.id_for_label }}">Parola</label>
+            {{ form.password }}
+            {{ form.password.errors }}
+        </div>
+        {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+        <button type="submit" class="button button-primary button-wide">Giriş yap</button>
+    </form>
+</section>
+{% endblock %}

@@ -1,0 +1,65 @@
+services:
+  db:
+    image: postgres:17-alpine
+    env_file:
+      - ${APP_ENV_FILE:-.env.production}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  web:
+    build: .
+    env_file:
+      - ${APP_ENV_FILE:-.env.production}
+    command:
+      - gunicorn
+      - config.wsgi:application
+      - --bind=0.0.0.0:8000
+      - --workers=3
+      - --timeout=60
+      - --access-logfile=-
+      - --error-logfile=-
+    volumes:
+      - media_data:/app/media
+      - static_data:/app/staticfiles
+    expose:
+      - "8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; request=urllib.request.Request('http://127.0.0.1:8000/health/', headers={'X-Forwarded-Proto': 'https'}); urllib.request.urlopen(request, timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+
+  proxy:
+    image: caddy:2-alpine
+    env_file:
+      - ${APP_ENV_FILE:-.env.production}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - static_data:/srv/static:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      web:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  media_data:
+  static_data:
+  caddy_data:
+  caddy_config:

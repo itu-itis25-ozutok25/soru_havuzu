@@ -1,0 +1,107 @@
+{% extends "core/base.html" %}
+
+{% block title %}Sorular · Soru Havuzu{% endblock %}
+
+{% block content %}
+<div class="page-heading">
+    <div>
+        <p class="eyebrow">Soru yönetimi</p>
+        <h1>{% if state == "archived" %}Arşivlenen sorular{% else %}Aktif sorular{% endif %}</h1>
+        <p class="muted">Soru kayıtlarını inceleyin, düzenleyin ve eksik alanları tamamlayın.</p>
+    </div>
+    <a href="{% url 'question-create' %}" class="button button-primary">Yeni soru ekle</a>
+</div>
+
+<div class="tabs">
+    <a href="{% url 'question-list' %}" class="{% if state == 'active' %}active{% endif %}">Aktif</a>
+    <a href="{% url 'question-list' %}?state=archived" class="{% if state == 'archived' %}active{% endif %}">Arşiv</a>
+</div>
+
+<section class="worklists" aria-label="Çalışma listeleri">
+    <a href="{% url 'question-list' %}"><span>Tüm aktif sorular</span><strong>{{ worklist_counts.active }}</strong></a>
+    <a href="{% url 'question-list' %}?status=question_type_pending"><span>Soru tipi bekleyenler</span><strong>{{ worklist_counts.question_type_pending }}</strong></a>
+    <a href="{% url 'question-list' %}?status=difficulty_pending"><span>Zorluk bekleyenler</span><strong>{{ worklist_counts.difficulty_pending }}</strong></a>
+    <a href="{% url 'question-list' %}?status=solution_pending"><span>Çözüm bekleyenler</span><strong>{{ worklist_counts.solution_pending }}</strong></a>
+    <a href="{% url 'question-list' %}?status=completed"><span>Tamamlananlar</span><strong>{{ worklist_counts.completed }}</strong></a>
+    <a href="{% url 'question-list' %}?state=archived"><span>Arşivlenenler</span><strong>{{ worklist_counts.archived }}</strong></a>
+</section>
+
+<details class="filter-panel" {% if request.GET %}open{% endif %}>
+    <summary>
+        <span>Arama ve filtreler</span>
+        <strong>{{ questions.paginator.count }} sonuç</strong>
+    </summary>
+    <form method="get" class="filter-form">
+        {% if state == "archived" %}<input type="hidden" name="state" value="archived">{% endif %}
+        <div class="filter-grid">
+            {% for field in filter_form %}
+                <div class="field-group filter-field {% if field.errors %}has-error{% endif %}">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {{ field.errors }}
+                </div>
+            {% endfor %}
+        </div>
+        <div class="filter-actions">
+            <a href="{% url 'question-list' %}{% if state == 'archived' %}?state=archived{% endif %}" class="button button-secondary">Temizle</a>
+            <button type="submit" class="button button-primary">Filtreleri uygula</button>
+        </div>
+    </form>
+</details>
+
+{% if questions %}
+    <div class="question-grid">
+        {% for question in questions %}
+            <article class="question-card">
+                <div class="question-card-top">
+                    <span class="code-chip">{{ question.code }}</span>
+                    {% if question.is_complete %}
+                        <span class="status status-complete">Tamamlandı</span>
+                    {% else %}
+                        <span class="status status-pending">Eksikleri var</span>
+                    {% endif %}
+                </div>
+                <a href="{% url 'question-detail' question.code %}" class="question-image-wrap">
+                    <img src="{{ question.original_image.url }}" alt="{{ question.code }} soru görseli">
+                </a>
+                <div class="question-card-body">
+                    <h2 data-latex>{{ question.question_text|truncatechars:110 }}</h2>
+                    <dl class="compact-meta">
+                        <div><dt>Ana konu</dt><dd>{{ question.primary_topic.name }}</dd></div>
+                        <div><dt>Kaynak</dt><dd>{{ question.source_pdf_name }} · s.{{ question.source_page_number }}</dd></div>
+                    </dl>
+                    {% if not question.is_complete %}
+                        <div class="status-list">
+                            {% for status in question.pending_statuses %}
+                                {% if status == "question_type" %}<span>Soru tipi bekliyor</span>{% endif %}
+                                {% if status == "difficulty" %}<span>Zorluk bekliyor</span>{% endif %}
+                                {% if status == "solution" %}<span>Çözüm bekliyor</span>{% endif %}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <a href="{% url 'question-detail' question.code %}" class="text-link">Soruyu aç →</a>
+                </div>
+            </article>
+        {% endfor %}
+    </div>
+
+    {% if questions.paginator.num_pages > 1 %}
+        <nav class="pagination" aria-label="Sayfalama">
+            {% if questions.has_previous %}
+                <a href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ questions.previous_page_number }}">← Önceki</a>
+            {% else %}<span></span>{% endif %}
+            <span>Sayfa <strong>{{ questions.number }}</strong> / {{ questions.paginator.num_pages }}</span>
+            {% if questions.has_next %}
+                <a href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ questions.next_page_number }}">Sonraki →</a>
+            {% else %}<span></span>{% endif %}
+        </nav>
+    {% endif %}
+{% else %}
+    <section class="empty-state">
+        <div class="empty-icon">∅</div>
+        <h2>Henüz burada soru yok</h2>
+        <p>{% if state == "archived" %}Arşivlenen sorular burada görünecek.{% else %}İlk soru kaydını oluşturarak başlayabilirsiniz.{% endif %}</p>
+        {% if state == "active" %}<a href="{% url 'question-create' %}" class="button button-primary">İlk soruyu ekle</a>{% endif %}
+    </section>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,72 @@
+{% extends "core/base.html" %}
+
+{% block title %}{{ question.code }} · Soru Havuzu{% endblock %}
+
+{% block content %}
+<div class="detail-heading">
+    <div>
+        <div class="heading-badges">
+            <span class="code-chip">{{ question.code }}</span>
+            {% if question.is_archived %}<span class="status status-archived">Arşivlendi</span>{% endif %}
+            {% if question.is_complete %}<span class="status status-complete">Tamamlandı</span>{% else %}<span class="status status-pending">Eksikleri var</span>{% endif %}
+        </div>
+        <h1>{{ question.primary_topic.name }}</h1>
+        <p class="muted">{{ question.source_pdf_name }} · Sayfa {{ question.source_page_number }} · Soru {{ question.source_question_number }}</p>
+    </div>
+    <div class="action-row">
+        <a href="{% url 'question-update' question.code %}" class="button button-secondary">Düzenle</a>
+        <a href="{% url 'question-solution' question.code %}" class="button button-primary">Çözüm gir</a>
+    </div>
+</div>
+
+<div class="detail-grid">
+    <section class="panel image-panel">
+        <h2>Orijinal görsel</h2>
+        <img src="{{ question.original_image.url }}" alt="{{ question.code }} soru görseli">
+    </section>
+
+    <section class="panel question-panel">
+        <h2>Soru</h2>
+        <div class="latex-block question-text" data-latex>{{ question.question_text|linebreaksbr }}</div>
+        <div class="choices">
+            <div class="choice {% if question.correct_answer == 'A' %}correct{% endif %}"><strong>A</strong><span data-latex>{{ question.choice_a }}</span></div>
+            <div class="choice {% if question.correct_answer == 'B' %}correct{% endif %}"><strong>B</strong><span data-latex>{{ question.choice_b }}</span></div>
+            <div class="choice {% if question.correct_answer == 'C' %}correct{% endif %}"><strong>C</strong><span data-latex>{{ question.choice_c }}</span></div>
+            <div class="choice {% if question.correct_answer == 'D' %}correct{% endif %}"><strong>D</strong><span data-latex>{{ question.choice_d }}</span></div>
+        </div>
+    </section>
+
+    <aside class="panel metadata-panel">
+        <h2>Sınıflandırma</h2>
+        <dl class="detail-meta">
+            <div><dt>Ana konu</dt><dd>{{ question.primary_topic }}</dd></div>
+            <div><dt>İkincil konular</dt><dd>{% for topic in question.secondary_topics.all %}{{ topic }}{% if not forloop.last %}<br>{% endif %}{% empty %}—{% endfor %}</dd></div>
+            <div><dt>Kazanımlar</dt><dd>{% for outcome in question.learning_outcomes.all %}{{ outcome }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</dd></div>
+            <div><dt>Soru tipi</dt><dd>{{ question.question_type|default:"Bekliyor" }}</dd></div>
+            <div><dt>Zorluk</dt><dd>{{ question.difficulty|default:"Bekliyor" }}</dd></div>
+        </dl>
+        {% if not question.is_complete %}
+            <div class="pending-box">
+                <strong>Tamamlanacak alanlar</strong>
+                {% for status in question.pending_statuses %}
+                    <span>{% if status == "question_type" %}Soru tipi{% elif status == "difficulty" %}Zorluk{% else %}Çözüm{% endif %}</span>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </aside>
+
+    <section class="panel solution-panel">
+        <div class="panel-heading"><h2>Çözüm</h2><a href="{% url 'question-solution' question.code %}" class="text-link">Düzenle</a></div>
+        {% if question.solution %}<div class="latex-block" data-latex>{{ question.solution|linebreaksbr }}</div>{% else %}<p class="muted">Henüz çözüm girilmedi.</p>{% endif %}
+    </section>
+</div>
+
+<section class="danger-zone">
+    {% if question.is_archived %}
+        <form method="post" action="{% url 'question-restore' question.code %}">{% csrf_token %}<button class="button button-secondary">Arşivden çıkar</button></form>
+    {% else %}
+        <form method="post" action="{% url 'question-archive' question.code %}">{% csrf_token %}<button class="button button-secondary">Arşivle</button></form>
+    {% endif %}
+    <a href="{% url 'question-delete' question.code %}" class="button button-danger">Kalıcı olarak sil</a>
+</section>
+{% endblock %}
