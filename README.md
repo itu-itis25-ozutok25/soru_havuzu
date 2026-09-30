@@ -1,5 +1,7 @@
 # Soru Havuzu ve Sınıflandırma Sistemi
 
+LGS asistanı için soru havuzu üretimi projesidir.
+
 Bu depo, 8. sınıf matematik sorularının konu, kazanım, soru tipi ve zorluk
 bilgileriyle saklanacağı Django + PostgreSQL uygulamasının temelini içerir.
 
